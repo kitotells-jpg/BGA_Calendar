@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>BGA Calendar</title>
+  <meta name="description" content="Live countdowns to the final bell, the next holiday and the end of the school year at the British Georgian Academy, Tbilisi.">
+  <meta name="theme-color" content="#23539A">
+
+  <!-- How the link looks when shared (WhatsApp, Instagram, iMessage...) -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="BGA Calendar">
+  <meta property="og:description" content="How long until the bell, the next holiday and summer at BGA.">
+  <!-- When the site is online, change these two to the full web address, e.g. https://yourname.github.io/bga-calendar/ -->
+  <meta property="og:url" content="./">
+  <meta property="og:image" content="og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <!-- Icons, and "Add to Home Screen" so it opens like an app -->
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="BGA Calendar">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Inter:wght@400;500;600&family=Noto+Sans+Georgian:wght@400;500;600;800&display=swap">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <script>
+    // Apply the saved theme and language before the page paints, so it never flashes the wrong one.
+    (function () {
+      var r = document.documentElement;
+      r.setAttribute("data-theme", "dark"); // the site starts in dark mode
+      try {
+        var th = localStorage.getItem("bga-theme"), lg = localStorage.getItem("bga-lang");
+        if (th === "light") r.setAttribute("data-theme", "light");
+        if (lg === "ka" || (!lg && (navigator.language || "").toLowerCase().indexOf("ka") === 0)) {
+          r.setAttribute("lang", "ka");
+          r.classList.add("i18n-pending");
+          setTimeout(function () { r.classList.remove("i18n-pending"); }, 1500);
+        }
+      } catch (e) {}
+    })();
+  </script>
+  <!-- Animated sky behind the page (background.js); the CSS sky shows until it is ready -->
+  <canvas id="sky" aria-hidden="true" style="width:100%;height:100%"></canvas>
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <a class="wordmark" href="#top">
+        <svg class="logo-mark" viewBox="0 0 64 64" width="40" height="40" aria-hidden="true"><rect width="64" height="64" rx="16" fill="#23539a"/><rect x="13" y="15" width="38" height="36" rx="8" fill="#fff"/><path d="M13 23a8 8 0 0 1 8-8h22a8 8 0 0 1 8 8v4H13z" fill="#0b0d12"/><rect x="21" y="10" width="5" height="10" rx="2.5" fill="#fff"/><rect x="38" y="10" width="5" height="10" rx="2.5" fill="#fff"/><circle cx="41" cy="41" r="5" fill="#23539a"/></svg>
+        <span class="wordmark-text">
+          <span class="wordmark-small" data-i18n="wordmark">School Calendar</span>
+          <span class="wordmark-big">BGA</span>
+        </span>
+      </a>
+      <div class="topbar-actions">
+        <button class="pill" id="lang-toggle" type="button" aria-label="ქართულად">ქარ</button>
+        <button class="icon-btn" id="theme-toggle" type="button" aria-label="Switch to dark mode">
+          <svg id="icon-moon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M20.5 14.6A8.5 8.5 0 0 1 9.4 3.5a8.5 8.5 0 1 0 11.1 11.1Z"/></svg>
+          <svg id="icon-sun" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" hidden><circle cx="12" cy="12" r="4.5" fill="currentColor"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap" id="top">
+    <!-- Countdown 1: end of the school year -->
+    <section class="hero" aria-labelledby="hero-title">
+      <p class="eyebrow" id="hero-eyebrow"></p>
+      <h1 class="hero-title"><span id="hero-title">Until summer</span><span class="dot">.</span></h1>
+      <div class="big-count" id="year-count">
+        <div class="unit"><span class="num" data-part="d">–</span><span class="lbl" data-i18n="uDays">days</span></div>
+        <div class="unit"><span class="num" data-part="h">–</span><span class="lbl" data-i18n="uHours">hours</span></div>
+        <div class="unit"><span class="num" data-part="m">–</span><span class="lbl" data-i18n="uMin">min</span></div>
+        <div class="unit unit-sec"><span class="num" data-part="s">–</span><span class="lbl" data-i18n="uSec">sec</span></div>
+      </div>
+      <div class="bar bar-light" aria-hidden="true"><div class="bar-fill" id="year-bar"></div></div>
+      <p class="hero-sub" id="year-progress"></p>
+    </section>
+
+    <!-- Countdowns 2 and 3: next day off, next event -->
+    <section class="tiles">
+      <article class="tile tile-light">
+        <p class="eyebrow" id="holiday-eyebrow" data-i18n="nextDayOff">Next day off</p>
+        <p class="tile-num"><span id="holiday-days">–</span><small id="holiday-days-lbl"></small></p>
+        <p class="tile-clock" id="holiday-clock"></p>
+        <h2 class="tile-name" id="holiday-name"></h2>
+        <p class="tile-date" id="holiday-date"></p>
+      </article>
+      <article class="tile tile-dark">
+        <p class="eyebrow" data-i18n="nextEvent">Next event</p>
+        <p class="tile-num"><span id="event-days">–</span><small id="event-days-lbl"></small></p>
+        <p class="tile-clock" id="event-clock"></p>
+        <h2 class="tile-name" id="event-name"></h2>
+        <p class="tile-date" id="event-date"></p>
+      </article>
+    </section>
+
+    <!-- Next few things -->
+    <section class="section" aria-labelledby="soon-title">
+      <h2 class="section-title" id="soon-title"><span data-i18n="comingUp">Coming up</span><span class="dot">.</span></h2>
+      <ol class="agenda" id="agenda"></ol>
+    </section>
+
+    <!-- Month calendar -->
+    <section class="section" id="calendar" aria-labelledby="cal-title">
+      <h2 class="section-title" id="cal-title"><span data-i18n="calendar">Calendar</span><span class="dot">.</span></h2>
+      <div class="cal">
+        <div class="cal-bar">
+          <p class="cal-month" id="cal-month" aria-live="polite">–</p>
+          <button class="cal-today-btn" id="cal-today" type="button" data-i18n="today">Today</button>
+          <button class="cal-nav" id="cal-prev" type="button" data-i18n-aria="prevMonth" aria-label="Previous month">
+            <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M15 5l-7 7 7 7"/></svg>
+          </button>
+          <button class="cal-nav" id="cal-next" type="button" data-i18n-aria="nextMonth" aria-label="Next month">
+            <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+        <div class="cal-head" id="cal-head" aria-hidden="true"></div>
+        <div class="cal-grid" id="cal-grid"></div>
+        <ul class="cal-legend">
+          <li><span class="key key-today"></span><span data-i18n="keyToday">Today</span></li>
+          <li><span class="key key-off"></span><span data-i18n="keyOff">No school</span></li>
+          <li><span class="key key-public"></span><span data-i18n="keyPublic">Public holiday</span></li>
+          <li><span class="key key-event"></span><span data-i18n="keyEvent">Event</span></li>
+        </ul>
+        <div class="cal-detail" id="cal-detail" aria-live="polite">
+          <p class="cal-detail-date" id="cal-detail-date"></p>
+          <p class="cal-detail-status" id="cal-detail-status"></p>
+          <ul class="cal-detail-list" id="cal-detail-list"></ul>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap footer-inner">
+      <div class="footer-actions">
+        <button class="pill pill-solid" id="share-btn" type="button" data-i18n="share">Share</button>
+        <details class="home-how">
+          <summary data-i18n="homeTitle">Add to your home screen</summary>
+          <p data-i18n="homeIos">iPhone (Safari): tap Share, then Add to Home Screen.</p>
+          <p data-i18n="homeAndroid">Android (Chrome): tap ⋮, then Add to Home screen.</p>
+        </details>
+      </div>
+      <p class="share-note" id="share-note" role="status"></p>
+      <p class="footer-small"><span data-i18n="source">Dates from the official BGA 2026–27 school calendar. Georgia time (UTC+4).</span> <span id="updated"></span></p>
+      <p class="credit"><span data-i18n="madeBy">Made by</span> <strong>Luka Kituashvili</strong> · <a href="https://www.instagram.com/luka.kituashvili_/" target="_blank" rel="noopener">@luka.kituashvili_</a></p>
+    </div>
+  </footer>
+
+  <noscript><p class="wrap">Turn on JavaScript to see the live countdowns.</p></noscript>
+  <script src="script.js"></script>
+  <script type="module" src="background.js"></script>
+</body>
+</html>
